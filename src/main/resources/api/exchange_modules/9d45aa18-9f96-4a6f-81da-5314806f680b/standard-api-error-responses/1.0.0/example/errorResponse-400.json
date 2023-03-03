@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "400",
+      "Type": "APIKIT:BAD_REQUEST",
+      "Message": "Missing Id : Id is required",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

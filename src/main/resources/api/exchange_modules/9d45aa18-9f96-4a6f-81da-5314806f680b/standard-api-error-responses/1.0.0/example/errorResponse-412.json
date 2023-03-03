@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "412",
+      "Type": "JSON:SCHEMA_NOT_HONOURED",
+      "Message": "string \"\" is too short (length: 0, required minimum: 1)",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

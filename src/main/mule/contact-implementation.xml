@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="contact-implementation-sub-flow" doc:id="bacee79b-96a3-44b6-8004-be983f5f8635" >
+		<ee:transform doc:name="DW Mapping request payload to invoke find CustomerAccount" doc:id="f1782ed6-dec5-42aa-80d3-974d0adfb098">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "operation": "FindCustomerAccount",
+    "data": {
+        "customerAccountId": vars.inputRequest.oracleCustomerId
+    }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Ref to oracle-sapi-post-customer-account-request-sub-flow" doc:id="d2a9b795-f433-462d-aea2-372a5ff33032" name="oracle-sapi-post-customer-account-request-sub-flow" target="customerAccountDetails"/>
+		<choice doc:name="CHECK if Oracle Contact ID present or not?" doc:id="d65709e6-0718-433f-96d1-e59142435bad" >
+			<when expression="#[isEmpty(vars.inputRequest.oracleContactId)]">
+				<logger level="INFO" doc:name="Person not present, Create person" doc:id="c90b8e8b-481c-4b33-93d2-45b24c65c21f" />
+				<flow-ref doc:name="Flow Ref to contact-implementation-create-contact-sub-flow" doc:id="5305c018-da6c-47ad-b9c4-b16cc7c591a1" name="contact-implementation-create-contact-sub-flow"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Person present, Update person" doc:id="849100bd-56d2-42d3-9f98-681384fc95b5" />
+				<flow-ref doc:name="Flow Ref to contact-implementation-update-contact-sub-flow" doc:id="d367b35e-bbbc-4625-95f6-23c2caac0dec" name="contact-implementation-update-contact-sub-flow"/>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="Flow Ref to contact-implementation-AR-contact-sub-flow" doc:id="db86519c-8a2a-437b-b07b-ac0208004f29" name="contact-implementation-AR-contact-sub-flow" />
+	</sub-flow>
+	<sub-flow name="contact-implementation-create-contact-sub-flow" doc:id="803d3592-bb33-4e3f-b93c-3bb2eec6dc03" >
+		<set-variable value='#[vars.customerAccountDetails.PartyId]' doc:name="VAR organizationId" doc:id="6851886b-b92e-4a27-bc8d-923b3f89fca6" variableName="organizationId"/>
+		<ee:transform doc:name="DW Mapping request payload to invoke Create Person" doc:id="dc822743-a4ab-41a3-9723-169685f1c1ca" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "operation": "CreatePerson",
+    "data": {
+        "personFirstName": vars.inputRequest.firstName default "",
+        "personLastName": vars.inputRequest.lastName default "",
+        "salesforceContactId": vars.inputRequest.salesforceContactId default "",
+        "orgId": vars.organizationId default "",
+        "email": vars.inputRequest.email default "",
+        "email2": vars.inputRequest.email2 default "",
+        "phone": vars.inputRequest.phone default ""
+    }
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Ref to oracle-sapi-post-person-request-sub-flow" doc:id="a553153f-772f-4acb-84eb-d8e0f2238205" name="oracle-sapi-post-person-request-sub-flow"/>
+		<set-variable doc:name="VAR relationshipId" doc:id="5c977e69-4d8d-45e3-837f-262a712f7305" variableName="relationshipId" value="#[payload.PersonProfile.PrimaryCustomerRelationshipId]"/>
+		<ee:transform doc:name="DW Mapping request payload to invoke MergeCustomerAccount" doc:id="3b8d19d1-4ac6-4c4e-9347-80b88ddcbf44" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "operation": "MergeCustomerAccount",
+    "data": {
+        "customerAccountId": vars.inputRequest.oracleCustomerId,
+        "relationshipId": vars.relationshipId,
+        "salesforceContactId": vars.inputRequest.salesforceContactId
+    }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Ref to oracle-sapi-post-customer-account-request-sub-flow" doc:id="9fef6d0a-854f-4cee-a3e2-e67c752c2dd3" name="oracle-sapi-post-customer-account-request-sub-flow" />
+		<logger level="INFO" doc:name="Sync Back OracleContact ID to Salesforce" doc:id="9b5dde08-619c-4e25-a7a8-10e09311c276" />
+	</sub-flow>
+	<sub-flow name="contact-implementation-update-contact-sub-flow" doc:id="7ee6e0b5-3cd3-47be-9777-312eef095720" >
+		<ee:transform doc:name="DW Mapping request payload to invoke find Person" doc:id="4cb55388-bec9-4e4f-b402-76f34cc6ec03">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "operation": "FindPerson",
+    "data": {
+        "partyId": vars.inputRequest.oracleContactId
+    }
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Ref to oracle-sapi-post-person-request-sub-flow" doc:id="2139c3bd-a720-494e-b1c7-a1e089ad4425" name="oracle-sapi-post-person-request-sub-flow" target="contactData" />
+		<ee:transform doc:name="DW Mapping request payload to invoke update Person Profile" doc:id="c8bd61ed-3b96-4e80-aebe-baaabc82cca0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "operation": "UpdatePersonProfile",
+    "data": {
+        "personProfileId": vars.contactData.PersonProfile.PersonProfileId,
+        "personId": vars.inputRequest.oracleContactId,
+        "personFirstName": vars.inputRequest.firstName default "",
+        "personLastName": vars.inputRequest.lastName default ""
+    }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Ref to oracle-sapi-post-person-request-sub-flow" doc:id="05372426-4121-461c-93b8-1cad7ca53092" name="oracle-sapi-post-person-request-sub-flow"/>
+		<ee:transform doc:name="DW Mapping Existing Contact Points from Oracle" doc:id="2fd7906d-adf1-4ebb-a5c2-efb60a7a5633" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable resource="dataweave/oracleContactPointData.dwl" variableName="oracleContactPointData" />
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="d6be017d-f694-4b05-9a3e-5e9807862757" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::util::Values
+output application/json
+---
+{
+    "personId":vars.oracleContactPointData.personId,
+    "relationshipId": vars.oracleContactPointData.relationshipId,
+    "phone": if(vars.oracleContactPointData.phone.phoneNumber[0] == vars.inputRequest.phone) vars.oracleContactPointData.phone else 
+        (vars.oracleContactPointData.phone update "endDate" with now() as String{format: "uuuu-MM-dd"}) ++ [{
+            "phoneNumber": vars.inputRequest.phone
+        }]
+,
+"email": (if(vars.oracleContactPointData.email.emailAddress[0] == vars.inputRequest.email) vars.oracleContactPointData.email else 
+        (vars.oracleContactPointData.email update "endDate" with now() as String{format: "uuuu-MM-dd"}) ++ [{
+            "emailAddress": vars.inputRequest.email,
+            "primaryFlag": "true"
+        }]), 
+ "email2": (if(vars.oracleContactPointData.email2.emailAddress[0] == vars.inputRequest.email2) vars.oracleContactPointData.email2 else 
+        ((vars.oracleContactPointData.email2 update "endDate" with now() as String{format: "uuuu-MM-dd"}) ++ [{
+            "emailAddress": vars.inputRequest.email2
+        }]))
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="DW Mapping request payload to invoke Merge Person" doc:id="554d9055-8890-4f81-bae8-f96d82468906" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"operation": "MergePerson",
+	"data": {
+		"personId": payload.personId,
+		"relationshipId": payload.relationshipId,
+		"salesforceContactId": vars.inputRequest.salesforceContactId,
+		"phone": payload.phone,
+		"email": payload.email ++ payload.email2
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Ref to oracle-sapi-post-person-request-sub-flow" doc:id="7069a99b-7d3a-435a-9c0f-1d0266e24300" name="oracle-sapi-post-person-request-sub-flow" />
+	</sub-flow>
+	<sub-flow name="contact-implementation-AR-contact-sub-flow" doc:id="4457e622-145e-44ce-8710-b4f70f24ec22" >
+		<ee:transform doc:name="DW Mapping filter AR Contact if present" doc:id="3faefc2b-6788-4bf0-9316-92fc46214e86" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="accountsiteContactIds" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.customerAccountDetails.*CustomerAccountSite filter ((item, index) -> item.BillToIndicator == "P")).CustomerAccountContact.ContactPersonId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="DW Mapping Find Person using FirstName,Lastname and Email" doc:id="1ba9f743-9573-431f-8ad0-3d0fb944f77c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "operation": "FindPerson",
+    "data": {
+        "personFirstName": "Accounts",
+        "personLastName": "Payables",
+        "emailAddress": "ap@oracle.com"
+    }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Ref to oracle-sapi-post-person-request-sub-flow" doc:id="62ad7a4e-e2e3-4d52-a0cd-ba7aac2d3405" name="oracle-sapi-post-person-request-sub-flow" target="accountPayablesData"/>
+		<ee:transform doc:name="VAR accountPayablesData" doc:id="482627d6-2d97-46d8-80f2-2ec877599543" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="accountPayablesData" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.accountPayablesData.PartyId)
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="VAR accountPayableDetails" doc:id="24af3b80-d5c0-49a2-833a-3da4966ba1ad" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="accountPayableDetails" ><![CDATA[%dw 2.0
+output application/json
+---
+(vars.accountPayablesData filter((item,index)-> vars.accountsiteContactIds contains item)) ]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="CHECK if AR Contact is 1. presernt, and 2. required in Oracle?" doc:id="8470b9cc-1c72-4542-ae73-5471b49e3cab" >
+			<when expression='#[vars.inputRequest.arContact == "true" and !(isEmpty(vars.accountPayableDetails))]'>
+				<logger level="INFO" doc:name="YES,YES   AP present for the email and customer, add just the primary flag" doc:id="2c643bce-6ae7-4130-ab55-a80c525fe155" message="AP present for the email and customer, add just the primary flag"/>
+				<ee:transform doc:name="Transform Message" doc:id="6f0be737-6d1f-45d4-bfd9-73d956df79f9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[vars.inputRequest.arContact == "true" and (isEmpty(vars.accountPayableDetails))]'>
+				<logger level="INFO" doc:name="YES,NO create a new AP contact" doc:id="89b84b75-2469-434c-9103-4bcc7f1fc0b6" message="create a new AP contact"/>
+			</when>
+			<when expression='#[vars.inputRequest.arContact == "false" and !(isEmpty(accountPayableDetails))]'>
+				<logger level="INFO" doc:name="NO, YES Remove Primary flag " doc:id="b3ee6dab-9818-4004-b60b-5a81a56813b5" message="Remove Primary flag from the AP contact from both Customer Account and Customer Account site level"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="NO, NO do nothing" doc:id="ca2536b9-8d33-4828-bdae-c287f5071294" message="NO, NO do nothing"/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="oracle-sapi-post-person-request-sub-flow" doc:id="28e41fa4-fd79-4369-8d90-07f530afc9dd" >
+		<http:request method="POST" doc:name="HTTP POST Person" doc:id="10dff8c8-3fab-448e-a106-093011f471e2" config-ref="HTTP_Request_Oracle_CRM_SAPI_configuration" path="${oracle-crm-sapi.path.person}" responseTimeout="#[p('response.timeout')]">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : p('secure::oracle-crm-sapi.client-secret'),
+	"client_id" : p('secure::oracle-crm-sapi.client-id')
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+	<sub-flow name="oracle-sapi-post-customer-account-request-sub-flow" doc:id="b9582f33-e173-465b-b17f-b5807785ce16" >
+		<http:request method="POST" doc:name="HTTP POST CustomerAccount" doc:id="d57ddcd1-6856-45dc-ab97-90dde72f4b24" config-ref="HTTP_Request_Oracle_CRM_SAPI_configuration" path="${oracle-crm-sapi.path.customer-account}" responseTimeout="#[p('response.timeout')]">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : p('secure::oracle-crm-sapi.client-secret'),
+	"client_id" : p('secure::oracle-crm-sapi.client-id')
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+</mule>

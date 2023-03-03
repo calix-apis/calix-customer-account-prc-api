@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+      <flow name="calix-customer-account-prc-api-main">
+        <http:listener config-ref="calix-customer-account-prc-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <set-variable value="#[p('mule.env')]" doc:name="Storing Environment Name" doc:id="0a069595-533d-4344-a6f6-f1c87df605fd" variableName="env" />
+		<set-variable value="#[p('app.name')]" doc:name="Storing Application Name" doc:id="2b96c4e0-8180-44d2-9953-609347b4ec8e" variableName="appname" />
+		<apikit:router config-ref="calix-customer-account-prc-api-config" />
+		<error-handler ref="global_error_handler" />
+    </flow>
+    <flow name="post:\account:application\json:calix-customer-account-prc-api-config">
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Message: "Created/Updated a new customer Account In Oracle"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\address:application\json:calix-customer-account-prc-api-config">
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Message: "Created/Updated a new address in Oracle"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\contact:application\json:calix-customer-account-prc-api-config">
+        <set-variable value="#[payload]" doc:name="VAR inputRequest" doc:id="d17874fb-346c-4445-bf22-7502c2ac3997" variableName="inputRequest"/>
+		<flow-ref doc:name="Flow Ref to contact-implementation-sub-flow" doc:id="060645cb-bb69-4951-b8b3-da8b956ec9eb" name="contact-implementation-sub-flow"/>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  Message: "Oracle sync completed successfully"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>

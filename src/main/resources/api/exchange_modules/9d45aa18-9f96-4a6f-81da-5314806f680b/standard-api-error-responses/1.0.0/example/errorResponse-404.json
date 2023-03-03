@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "404",
+      "Type": "APIKIT:NOT_FOUND",
+      "Message": "The server cannot find the requested resource",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

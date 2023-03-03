@@ -1,0 +1,77 @@
+#%RAML 1.0 Trait
+
+  # This file contains traits related to errors and can be used as described below. 
+  #   - import the standard-api-error-responses.raml to your RAML file.
+  #        uses:
+  #          error: library/standard-api-error-responses.raml
+  #   - Add this trait to any operation that needs to support these error responses
+  #        /students:
+  #          get:
+  #            is: [error.standard-error-responses]
+
+  description: These are the standard REST error responses currently being supported 
+  responses:
+    400:
+      description:
+        The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-400.json
+    404:
+      description:
+        The server cannot find the requested resource.
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-404.json
+    405:
+      description:
+        A request was made of a resource using a request method not supported by that resource; for example, using GET on a form which requires data to be presented via POST, or using PUT on a read-only resource.
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-405.json
+    406:
+      description:
+        An error thrown from the APIKit, typically when an invalid response type is specified.
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-406.json
+    412:
+      description:
+        Validation Error
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-412.json
+    415:
+      description:
+        The accept header specified an unsupported media type.
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-415.json
+    417:
+      description:
+        Error thrown from the APIKit when an invalid header is passed in.
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-417.json
+
+    500:
+      description:
+        That went badly, check to see if there is an x-implementation-status-code header value returned from the API implementation.
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-500.json
+    501:
+      description:
+        Runtime exception.
+      body:
+        application/json:
+          #type: ErrorResponse
+          example: !include example/errorResponse-501.json

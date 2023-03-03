@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "406",
+      "Type": "APIKIT:NOT_ACCEPTABLE",
+      "Message": "Not acceptable",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

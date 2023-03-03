@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "415",
+      "Type": "HTTP:UNSUPPORTED_MEDIA_TYPE",
+      "Message": "Unsupported media type",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

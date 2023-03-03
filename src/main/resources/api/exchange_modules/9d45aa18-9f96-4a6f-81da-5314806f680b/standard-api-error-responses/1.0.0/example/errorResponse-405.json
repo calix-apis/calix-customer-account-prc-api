@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "405",
+      "Type": "HTTP:METHOD_NOT_ALLOWED",
+      "Message": "Request was made of a resource using a request method not supported by that resource",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

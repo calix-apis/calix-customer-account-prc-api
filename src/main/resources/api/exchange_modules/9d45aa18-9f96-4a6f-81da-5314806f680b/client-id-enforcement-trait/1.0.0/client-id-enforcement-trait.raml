@@ -1,0 +1,16 @@
+#%RAML 1.0 Trait
+displayName: Header Trait
+headers:
+  client_id:
+    type: string
+    required: true
+  client_secret:
+    type: string
+    required: true
+responses: 
+      401:
+        description: Unauthorized or invalid client application credentials
+      500:
+        description: Bad response from authorization server/error
+
+ 

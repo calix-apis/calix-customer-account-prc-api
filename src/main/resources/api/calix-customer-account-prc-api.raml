@@ -1,0 +1,57 @@
+#%RAML 1.0
+title: calix-customer-account-prc-api
+version: 1.0
+
+documentation:
+  - title: Calix Oracle CRM System API
+    content: Provides an interface for inbound and outbound communication with Oracle CRM  in form on APIs
+
+mediaType: 
+- application/json
+protocols: [HTTP]
+
+traits:
+  standard-error-responses: !include /exchange_modules/9d45aa18-9f96-4a6f-81da-5314806f680b/standard-api-error-responses/1.0.0/standard-api-error-responses.raml
+  client-id-required: !include /exchange_modules/9d45aa18-9f96-4a6f-81da-5314806f680b/client-id-enforcement-trait/1.0.0/client-id-enforcement-trait.raml
+
+
+/account:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to create/Update a new customer Account In Oracle
+        body:
+          application/json:
+            example: 
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-account-response.json
+
+
+/address:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to create/Update a new location in Oracle
+        body:
+          application/json:
+            example: 
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-address-response.json
+
+
+/contact:
+      post:
+        is: [standard-error-responses, client-id-required]
+        description: Exposes endpoint to create/Update a new Contact in Oracle
+        body:
+          application/json:
+            example: !include examples/request/post-contact-request.json
+        responses:
+          201:
+            body:
+              application/json:
+                example: !include examples/response/post-contact-response.json

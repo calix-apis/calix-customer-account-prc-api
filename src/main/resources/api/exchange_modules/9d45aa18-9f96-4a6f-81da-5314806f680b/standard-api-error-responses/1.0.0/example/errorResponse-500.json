@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "500",
+      "Type": "SOCKETS:CONNECTION_TIMEOUT",
+      "Message": "Server Error",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

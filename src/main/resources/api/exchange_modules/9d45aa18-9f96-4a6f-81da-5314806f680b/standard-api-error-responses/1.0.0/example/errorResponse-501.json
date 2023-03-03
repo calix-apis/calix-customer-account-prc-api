@@ -1,0 +1,10 @@
+{
+  "ErrorDetails": {
+    "Error": {
+      "Code": "501",
+      "Type": "APIKIT:RUNTIME_EXCEPTION",
+      "Message": "Flow not found for resource",
+      "Uuid": "9ec40300-bd32-4f42-a5e9-21ca5b933ba1"
+    } 
+  }
+}

@@ -1,0 +1,10 @@
+{ 
+  "oracleCustomerId": "123456",
+  "oracleContactId": "123456",
+  "firstName": "Fname",
+  "lastName": "Lname",
+  "email": "test@gmail.com",
+  "email2": "test1@gmail.com",
+  "phone": "1234567890",
+  "salesforceContactId": "SF_123456"
+}
